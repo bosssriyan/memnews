@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTC - Mobile Editor</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #dfe4ea;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Editor Tools (মোবাইলের জন্য অ্যাডজাস্টেড) --- */
+        .tools-container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 550px; /* ডেক্সটপেও যেন অতিরিক্ত বড় না হয় */
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr; /* মোবাইলে সব এক লাইনে থাকবে */
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        /* ট্যাবলেট বা বড় স্ক্রিনের জন্য ২ কলাম */
+        @media (min-width: 480px) {
+            .tools-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .tools-container h2 { 
+            grid-column: 1 / -1; 
+            margin: 0; 
+            color: #b30000; 
+            text-align: center; 
+            font-size: 1.2rem;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #57606f; }
+        input, textarea, select { 
+            padding: 8px; 
+            border: 1px solid #ced4da; 
+            border-radius: 6px; 
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        /* --- News Card (পুরো স্ক্রিন জুড়ে থাকবে) --- */
+        #news-card {
+            width: 100%;
+            max-width: 550px; /* মূল ডিজাইনের উইডথ বজায় রাখা হলো */
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .main-photo {
+            height: 300px; /* মোবাইলে উচ্চতা কিছুটা কমানো হয়েছে */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+
+        #m-img { transition: 0.3s; width: auto; height: auto; }
+        .mode-cover { width: 100% !important; height: 100% !important; object-fit: cover; }
+        .mode-contain { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .headline-box { background-color: #b30000; color: #fff; padding: 15px 10px; text-align: center; }
+        #h-text { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.2; }
+        .meta-text { background-color: #b30000; color: #ffcccc; text-align: right; padding: 0 15px 10px; font-size: 12px; }
+
+        .brand-strip {
+            background-color: #8b0000;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap; /* ছোট ফোনে লেখাগুলো নিচে নামবে */
+            justify-content: space-between;
+            font-size: 11px;
+            gap: 5px;
+        }
+
+        .footer-ad {
+            background: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            border-top: 4px solid #005a32;
+        }
+
+        .footer-logo { width: 80px; height: 40px; margin-right: 10px; display: flex; justify-content: center; align-items: center; }
+        #f-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .footer-info { color: #005a32; font-size: 12px; line-height: 1.2; flex: 1; }
+
+        /* Save Button */
+        .save-btn {
+            margin: 20px 0;
+            width: 100%;
+            max-width: 550px;
+            padding: 15px;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tools-container">
+        <h2>MTC NEWS EDITOR</h2>
+        
+        <div class="input-group" style="grid-column: 1 / -1;">
+            <label>হেডলাইন:</label>
+            <textarea id="in-h" rows="2" oninput="sync()">MTC সাইবার যোদ্ধা</textarea>
+        </div>
+
+        <div class="input-group">
+            <label>চ্যানেল নাম:</label>
+            <input type="text" id="in-brand" value="🔴 MTC | tv" oninput="sync()">
+        </div>
+        <div class="input-group">
+            <label>তারিখ:</label>
+            <input type="text" id="in-d" value="৯ মার্চ ২০২৬" oninput="sync()">
+        </div>
+        <div class="input-group">
+            <label>ওয়েবসাইট:</label>
+            <input type="text" id="in-web" value="www.mtc.com" oninput="sync()">
+        </div>
+        <div class="input-group">
+            <label>সোশ্যাল আইডি:</label>
+            <input type="text" id="in-social" value="▶ mtc_official" oninput="sync()">
+        </div>
+
+        <div class="input-group">
+            <label>মেইন ফটো:</label>
+            <input type="file" id="up-m" accept="image/*" onchange="loadM(event)">
+        </div>
+
+        <div class="input-group">
+            <label>নিচের ফটো:</label>
+            <input type="file" id="up-f" accept="image/*" onchange="loadF(event)">
+        </div>
+
+        <div class="input-group">
+            <label>ফটো মোড:</label>
+            <select id="in-mode" onchange="sync()">
+                <option value="mode-contain">সেন্টার ফিট</option>
+                <option value="mode-cover" selected>ফুল ফ্রেম</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>ব্যাকগ্রাউন্ড:</label>
+            <input type="color" id="in-bg" value="#ffffff" oninput="sync()">
+        </div>
+
+        <div class="input-group">
+            <label>টাইটেল:</label>
+            <input type="text" id="in-ad1" value="সাইবার নিরাপত্তা নিশ্চিত করুন" oninput="sync()">
+        </div>
+
+        <div class="input-group">
+            <label>ডেসক্রিপশন:</label>
+            <input type="text" id="in-ad2" value="MTC সবসময় আপনার পাশে আছে।" oninput="sync()">
+        </div>
+    </div>
+
+    <div id="news-card">
+        <div class="main-photo" id="bg-layer">
+            <img id="m-img" src="" class="mode-cover" style="display:none;">
+        </div>
+        <div class="headline-box">
+            <h1 id="h-text">MTC সাইবার যোদ্ধা</h1>
+        </div>
+        <div class="meta-text" id="d-text">৯ মার্চ ২০২৬</div>
+        
+        <div class="brand-strip">
+            <div id="brand-text">🔴 MTC | tv</div>
+            <div id="web-text">www.mtc.com</div>
+            <div id="social-text">▶ mtc_official</div>
+        </div>
+
+        <div class="footer-ad">
+            <div class="footer-logo">
+                <img id="f-img" src="" style="display:none;">
+            </div>
+            <div class="footer-info">
+                <b id="ad1-text">সাইবার নিরাপত্তা নিশ্চিত করুন</b><br>
+                <span id="ad2-text">MTC সবসময় আপনার পাশে আছে।</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="save-btn" onclick="download4K()">সরাসরি ৪কে সেভ করুন</button>
+
+    <script>
+        // আপনার আগের সব জাভাস্ক্রিপ্ট ফাংশন এখানে ঠিকভাবে কাজ করবে
+        function sync() {
+            document.getElementById('h-text').innerText = document.getElementById('in-h').value;
+            document.getElementById('d-text').innerText = document.getElementById('in-d').value;
+            document.getElementById('ad1-text').innerText = document.getElementById('in-ad1').value;
+            document.getElementById('ad2-text').innerText = document.getElementById('in-ad2').value;
+            document.getElementById('brand-text').innerText = document.getElementById('in-brand').value;
+            document.getElementById('web-text').innerText = document.getElementById('in-web').value;
+            document.getElementById('social-text').innerText = document.getElementById('in-social').value;
+            document.getElementById('bg-layer').style.backgroundColor = document.getElementById('in-bg').value;
+            const mode = document.getElementById('in-mode').value;
+            const img = document.getElementById('m-img');
+            img.className = mode;
+        }
+
+        function loadM(e) {
+            const r = new FileReader();
+            r.onload = () => {
+                const i = document.getElementById('m-img');
+                i.src = r.result; i.style.display = "block"; sync();
+            }
+            if(e.target.files[0]) r.readAsDataURL(e.target.files[0]);
+        }
+
+        function loadF(e) {
+            const r = new FileReader();
+            r.onload = () => {
+                const i = document.getElementById('f-img');
+                i.src = r.result; i.style.display = "block";
+            }
+            if(e.target.files[0]) r.readAsDataURL(e.target.files[0]);
+        }
+
+        function download4K() {
+            const card = document.getElementById('news-card');
+            const btn = document.querySelector('.save-btn');
+            btn.innerText = "প্রসেসিং হচ্ছে...";
+            
+            html2canvas(card, { 
+                scale: 3, // মোবাইলে ৩ স্কেল ই যথেষ্ট (প্রায় ১৬০০+ পিক্সেল হবে)
+                useCORS: true,
+                logging: false,
+                backgroundColor: null 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'News_mtc.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.innerText = "সরাসরি ৪কে সেভ করুন";
+            });
+        }
+    </script>
+</body>
+</html>
